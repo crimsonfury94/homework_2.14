@@ -1,11 +1,9 @@
 package com.company.impl;
 
-import com.company.exception.ArrayIsFullException;
 import com.company.exception.ElementIsNullException;
 import com.company.exception.IndexMoreThanElementsException;
 import com.company.exception.RemoveNonExistentElementException;
 import com.company.interfaces.IntegerList;
-import com.company.interfaces.StringList;
 
 import java.util.Arrays;
 
@@ -28,7 +26,7 @@ public class IntegerListImpl implements IntegerList {
 
     @Override
     public Integer add(Integer item) {
-        sizeValid();
+        sizeGrow();
         itemValid(item);
         integerList[size++] = item;
         return item;
@@ -36,7 +34,7 @@ public class IntegerListImpl implements IntegerList {
 
     @Override
     public Integer add(int index, Integer item) {
-        sizeValid();
+        sizeGrow();
         itemValid(item);
         indexValid(index);
 
@@ -162,14 +160,37 @@ public class IntegerListImpl implements IntegerList {
     }
 
     private void sort() {
-        for (int i = 1; i < size; i++) {
-            int temp = integerList[i];
-            int j = i;
-            while (j > 0 && integerList[j - 1] >= temp) {
-                integerList[j] = integerList[j - 1];
-                j--;
+        quickSort(integerList, 0, integerList.length - 1);
+    }
+
+    private static void swapElements(Integer[] arr, int indexA, int indexB) {
+        int tmp = arr[indexA];
+        arr[indexA] = arr[indexB];
+        arr[indexB] = tmp;
+    }
+
+    private static int partition(Integer[] arr, int begin, int end) {
+        int pivot = arr[end];
+        int i = (begin - 1);
+
+        for (int j = begin; j < end; j++) {
+            if (arr[j] <= pivot) {
+                i++;
+
+                swapElements(arr, i, j);
             }
-            integerList[j] = temp;
+        }
+
+        swapElements(arr, i + 1, end);
+        return i + 1;
+    }
+
+    private static void quickSort(Integer[] arr, int begin, int end) {
+        if (begin < end) {
+            int partitionIndex = partition(arr, begin, end);
+
+            quickSort(arr, begin, partitionIndex - 1);
+            quickSort(arr, partitionIndex + 1, end);
         }
     }
 
@@ -180,9 +201,9 @@ public class IntegerListImpl implements IntegerList {
         }
     }
 
-    private void sizeValid() {
-        if (size == integerList.length) {
-            throw new ArrayIsFullException();
+    private void sizeGrow() {
+        if (size >= integerList.length) {
+            grow();
         }
     }
 
@@ -190,5 +211,9 @@ public class IntegerListImpl implements IntegerList {
         if (index < 0 || index > size) {
             throw new IndexMoreThanElementsException();
         }
+    }
+
+    private void grow() {
+        integerList = Arrays.copyOf(integerList, (int) (size * 1.5));
     }
 }
